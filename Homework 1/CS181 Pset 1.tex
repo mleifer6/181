@@ -1,13 +1,12 @@
 \documentclass[submit]{harvardml}
 
 % Put in your full name and email address.
-\name{Your Name}
-\email{email@fas.harvard.edu}
+\name{Matt Leifer}
+\email{matthewleifer@college.harvard.edu}
 
 % List any people you worked with.
 \collaborators{%
-	John Doe,
-	Fred Doe
+	Tomislav Zabcic-Matic
 }
 
 % You don't need to change these.
@@ -119,6 +118,43 @@
 	\end{problem}
 	
 	\subsubsection*{Solution}
+	\begin{enumerate}
+		\item $\frac{\textup{d}}{\textup{d}w_0}\mcL(\boldw)=(\frac{\textup{d}}{\textup{d}w_0}(\boldy-\boldX\boldw-w_0\textbf{1}))^T((\boldy-\boldX\boldw-w_0\textbf{1}))+(\frac{\textup{d}}{\textup{d}w_0}(\boldy-\boldX\boldw-w_0\textbf{1}))^T((\boldy-\boldX\boldw-w_0\textbf{1}))+0$ \\
+		$= -2\cdot \textbf{1}^T(\boldy-\boldX\boldw-w_0\textbf{1}) \\
+		 = -2\displaystyle\sum_{i=1}^{n}(y_i-w_0-\displaystyle\sum_{j=1}^{m}w_jx_{ij}) \\
+		 = 2nw_0 -2\displaystyle\sum_{i=1}^{n}y_i -2 \displaystyle\sum_{j=1}^{m}w_j\displaystyle\sum_{i=1}^{n}x_{ij} \\
+		 = 2nw_0 -2\displaystyle\sum_{i=1}^{n}y_i$ because $\displaystyle\sum_{i=1}^{n}x_{ij} = 0$.  
+		 
+		 \item 
+		 $\frac{\textup{d}}{\textup{d}\boldw}\mcL(\boldw) = -2\boldX^T(\boldy-\boldX\boldw-w_0\textbf{1})  + 2\lambda\boldw$ by using the rule that $\frac{d}{d\boldx}\boldx^T\boldA\boldx = (\boldA + \boldA^T)\boldx$, where in this case $\boldA = \boldI$, the identity matrix.
+		 
+		 \item  Set $\frac{d}{dw_0}\mcL(\boldw)$ to 0.  \\
+		 $0 = 2nw_0 -2\displaystyle\sum_{i=1}^{n}y_i $ \\
+		 $nw_0 = \displaystyle\sum_{i=1}^{n}y_i$ \\
+		 $w_0 = \frac{1}{n}\displaystyle\sum_{i=1}^{n}y_i$ which is what we wanted to show.\\
+		 \\  
+		 Set $\frac{d}{d\boldw}\mcL(\boldw)$ to 0. \\
+		 $0 = -2\boldX^T(\boldy-\boldX\boldw-w_0\textbf{1})  + 2\lambda\boldw$ \\
+		 $\lambda\boldw = \boldX^T\boldy-\boldX^T\boldX\boldw-\boldX^Tw_0\textbf{1}$ \\
+		 $\boldX^T\boldX\boldw + \lambda\boldw = \boldX^T\boldy-\boldX^Tw_0\textbf{1}$ \\
+		 $(\boldX^T\boldX + + \lambda\boldI)\boldw = \boldX^T\boldy -\boldX^Tw_0\textbf{1}$ \\
+		 \\
+		 However, $\boldX^Tw_0\textbf{1} = 0$ because $\boldX^Tw_0\textbf{1} = w_0 \cdot [\displaystyle\sum_{i = 1}^{n}x_{i1}  \displaystyle\sum_{i = 1}^{n}x_{i2} ... \displaystyle\sum_{i = 1}^{n}x_{im}]^T$ and we know that since the data is centered that $\displaystyle\sum_{i=1}^{n}x_{ij} = 0$ \\
+		 So, $(\boldX^T\boldX + + \lambda\boldI)\boldw = \boldX^T\boldy$ \\
+		 $\boldw = (\boldX^T\boldX + + \lambda\boldI)^{-1}\boldX^T\boldy$ which is what we wanted to show.  
+		 \\
+		 Because we're taking that $\mcL(\boldw,w_0)$ is convex in its arguments and at these values of $\boldw$ and $w_0$ the derivatives of $\mcL$ are 0, we know that these values are the global optimizers. 
+		 
+		 \item Let $e$ be an eigenvalue of $\boldX^T\boldX$.  Because $\boldX^T\boldX$ is semi-definite, $e\geq 0$.  $(\boldX^T\boldX - e\boldI)\boldv = 0$.  \\
+		 Now consider the eigenvalues of $\boldX^T\boldX + \lambda\boldI$.  \\
+		 $(\boldX^T\boldX + \lambda\boldI)\boldv = k\boldv$ \\
+		 $(\boldX^T\boldX + (\lambda - k)\boldI)\boldv = 0$ \\
+		 Therefore $\lambda - k = -e$ and so $k = \lambda - e$.  Therefore because $\lambda > 0$ and $e \geq 0$, $k > 0$.  That is to say that all the eigenvalues of $\boldX^T\boldX + \lambda\boldI$ are greater than zero.  This implies that $\boldX^T\boldX + \lambda\boldI$ is invertible.  
+		 
+		 \item In least squares regression, we have to take the inverse of $\boldX^T\boldX$ and because the eigenvalues of this can be 0, this matrix may not be invertible.  However, the matrix in ridge regression is always invertible.  
+		 
+		 
+	\end{enumerate}
 	
 	
 	
@@ -162,8 +198,15 @@
 	
 	\subsubsection*{Solution}
 	
-	
-	
+	$p(\boldw)=\mathcal{N}(\boldw|0,\alpha^{-1}\boldI)$ \\\\
+	$p(\boldw)=\frac{1}{(2\pi)^{0.5D}}\cdot\frac{1}{(\textup{det}(\alpha^{-1}\boldI))^{0.5}}\textup{exp}(-\frac{1}{2}\boldw^T\alpha\boldI\boldw)$ \\\\
+	$\textup{ln}p(\boldw) = c_1 - \frac{\alpha}{2}\boldw^T\boldw = -\alpha\mcR(\boldw) + c_1$ \\\\
+	\noindent
+	$p(\boldy| \boldw) = \displaystyle\prod_{i=1}^{n}\mathcal{N}(y_i|\boldw^Tx_i, \beta^-1)$\\\\
+	$p(\boldy| \boldw) = \displaystyle\sum_{i=1}^{n}\textup{ln}(\frac{1}{(2\pi\beta^{-1})^{0.5}})-\frac{1}{2\beta^{-1}}(y_i-\boldw^T\boldx)^2 = c_2 - \beta \mcL(\boldw)$
+	\\\\
+	Therefore, $\textup{ln}p(\boldw|\boldy) = -\alpha\mcR(\boldw)-\beta\mcL(\boldw)+c_1+c_2$ up to a normalization class.  If we drop $c_1+c_2$, which is a constant then we can see that ln$(p(\boldw|\boldy))$ is proportional to $-(\frac{\alpha}{\beta}\mcR(\boldw)+\mcL(\boldw)$.  \\
+	We know that $\mcR(\boldw)$ and $\mcL(\boldw)$ are both always greater than or equal to zero ($\mcL$ is the sum of squared terms and $\mcR$ is equivalent to half the dot product of $\boldw$) so if we minimize this error term ($\mcL(\boldw)+\lambda\mcR(\boldw)$, where $\lambda = \frac{\alpha}{\beta}$) we can maximize the log of the posterior probability and by extension of the posterior probability.  
 	
 	
 	
@@ -238,7 +281,20 @@
 	\end{problem}
 	
 	\subsubsection*{Solution}
-	
+	\begin{enumerate}
+		\item 
+		\includegraphics[width=0.8\textwidth]{Part_a_j_6_basis_polynomial.eps} \\
+		This graph isn't bad but it slightly overfits the data.  As soon as we get out of the range of the data set the values of average age grow extremely quickly.  \\ 
+		\includegraphics[width=0.8\textwidth]{Part_b_j_4_basis_polynomial.eps} \\
+		This one captures the overall shape of the data and might be good for a few years outside of the range of data but since it's a polynomial eventually the $x^4$ term will dominate and the data will go to infinity - the underlying basis function don't model the age of people accurately. \\  
+		\includegraphics[width=0.8\textwidth]{Part_c_j_6_basis_sine.eps} \\
+		This graph probably fits the data the best of all the ones here, it's close to the data and captures the kinks in the data and also looks like it gives reasonable predicitons out side the range. \\ 
+		\includegraphics[width=0.8\textwidth]{Part_d_j_10_basis_sine.eps} \\
+		This is definitely a case of overfitting the data.  The curve hits the given data extremely well and is the 2nd best of these graphs to minimize the error but almost as soon as we leave the domain of the data the prediction is wildly off.  \\
+		\includegraphics[width=0.8\textwidth]{Part_e_j_22_basis_sine.eps} \\
+		Just like the graph before, this overfits the data and probably uses too many parameters.  So the error is very low but the function is very bad for predictions. \\   
+		
+	\end{enumerate}
 	
 	
 	
@@ -253,6 +309,6 @@
 	\begin{problem}[Calibration, 1pt]
 		Approximately how long did this homework take you to complete?
 	\end{problem}
-	\textbf{Answer:}
+	\textbf{Answer: 8hrs}
 	
 \end{document}

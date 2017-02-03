@@ -80,8 +80,7 @@ def make_graph(max_j, basis, xs = times, ys = ages):
 	n = len(grid_times)
 	phi = design_matrix(xs, basis, max_j)
 	w = np.linalg.solve(np.dot(phi.T,phi), np.dot(phi.T, ys))
-	print w
-	print "#"*80
+
 	# Fill the grid_X matrix
 	grid_X = np.empty((n, max_j + 1))
 	for i in range(n):
