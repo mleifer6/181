@@ -34,7 +34,7 @@ ages = np.array(ages)
 plt.plot(times, ages, 'o')
 plt.xlabel("Congress age (nth Congress)")
 plt.ylabel("Average age")
-plt.show()
+#plt.show()
 
 # Create the simplest basis, with just the time and an offset.
 X = np.vstack((np.ones(times.shape), times)).T
@@ -55,7 +55,7 @@ grid_Yhat  = np.dot(grid_X.T, w)
 plt.plot(times, ages, 'o', grid_times, grid_Yhat, '-')
 plt.xlabel("Congress age (nth Congress)")
 plt.ylabel("Average age")
-plt.show()
+#plt.show()
 
 def design_matrix(data, basis, max_j):
 	n = len(data)
@@ -74,13 +74,18 @@ def poly(x,j):
 def sin(x, j):
 	return np.sin(x / j)
 
+def loss(y, X, w):
+	return np.dot((y - np.dot(X, w)).T, y - np.dot(X, w))
+
+
+
 count = 97
 def make_graph(max_j, basis, xs = times, ys = ages):
 	grid_times = np.linspace(75, 120, 200)
 	n = len(grid_times)
 	phi = design_matrix(xs, basis, max_j)
 	w = np.linalg.solve(np.dot(phi.T,phi), np.dot(phi.T, ys))
-
+	total_loss =  loss(ys, phi, w)
 	# Fill the grid_X matrix
 	grid_X = np.empty((n, max_j + 1))
 	for i in range(n):
@@ -91,12 +96,12 @@ def make_graph(max_j, basis, xs = times, ys = ages):
 				grid_X[i,j] = basis(grid_times[i], j)
 
 	grid_Yhat = np.dot(grid_X, w)
-	
+
 	global count
 	fig = plt.figure()
 	b_name = "polynomial" if basis(1,1) == 1 else "sine"
 	name = "Part " + chr(count) + ", j = " + str(max_j) + ", basis = " + b_name + ".png"
-	fig.suptitle(name, fontsize = 25)
+	fig.suptitle(name[:-4] + ", Loss = " + str(total_loss), fontsize = 20)
 	plt.plot(xs, ys, 'o', grid_times, grid_Yhat, '-')
 	plt.xlabel("Congress age (nth Congress)")
 	plt.ylabel("Average age")
