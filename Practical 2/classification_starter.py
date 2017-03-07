@@ -75,7 +75,7 @@ except ImportError:
     import xml.etree.ElementTree as ET
 import numpy as np
 from scipy import sparse
-
+import tensorflow as tf
 import util
 
 
@@ -228,6 +228,28 @@ def system_call_count_feats(tree):
             c['num_system_calls'] += 1
     return c
 
+def count_all_feats(tree):
+    """
+    arguments:
+      tree is an xml.etree.ElementTree object
+    returns:
+      a dictionary mapping each tag in all_section to the number of times
+      that was used in a file
+    """
+    c = Counter()
+    in_all_section = False
+    for el in tree.iter():
+        # ignore everything outside the "all_section" element
+        if el.tag == "all_section" and not in_all_section:
+            in_all_section = True
+        elif el.tag == "all_section" and in_all_section:
+            in_all_section = False
+        elif in_all_section:
+            c[el.tag] += 1
+    return c
+
+
+
 ## The following function does the feature extraction, learning, and prediction
 def main():
     train_dir = "train"
@@ -235,16 +257,41 @@ def main():
     outputfile = "mypredictions.csv"  # feel free to change this or take it as an argument
     
     # TODO put the names of the feature functions you've defined above in this list
-    ffs = [first_last_system_call_feats, system_call_count_feats]
+    ffs = [first_last_system_call_feats, system_call_count_feats, count_all_feats]
     
     # extract features
     print "extracting training features..."
     X_train,global_feat_dict,t_train,train_ids = extract_feats(ffs, train_dir)
     print "done extracting training features"
-    print
+    print X_train
+    print global_feat_dict
     
     # TODO train here, and learn your classification parameters
     print "learning..."
+
+    learning_rate = 0.001
+    training_epochs = 15
+    n_hidden_1 = size(global_feat_dict) / 3 # 1st layer number of features
+    n_hidden_2 = size(global_feat_dict) / 3 # 2nd layer number of features
+    n_input = size(global_feat_dict)
+    n_classes = 15
+
+    x = tf.placeholder("float", [None, n_input])
+    y = tf.placeholder("float", [None, n_classes])
+
+    # Create model
+    def multilayer_perceptron(x, weights, biases):
+        # Hidden layer with RELU activation
+        layer_1 = tf.add(tf.matmul(x, weights['h1']), biases['b1'])
+        layer_1 = tf.nn.relu(layer_1)
+        # Hidden layer with RELU activation
+        layer_2 = tf.add(tf.matmul(layer_1, weights['h2']), biases['b2'])
+        layer_2 = tf.nn.relu(layer_2)
+        # Output layer with linear activation
+        out_layer = tf.matmul(layer_2, weights['out']) + biases['out']
+        return out_layer 
+
+
     learned_W = np.random.random((len(global_feat_dict),len(util.malware_classes)))
     print "done learning"
     print
