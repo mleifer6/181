@@ -1,0 +1,20 @@
+\documentclass{article}
+
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage[margin=1in]{geometry}
+\pagestyle{empty}
+
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{conj}[thm]{Conjecture}
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage{wrapfig}
+\usepackage{float}
+\begin{document}	
+\noindent Matt Leifer \hspace{5.5in} 4/27/15\\
+
+One of the first steps we took to begin this classification practical was we examined all the XML files we were given to see if there were any distinctive commands (words) that were distinct to the various kinds of malware to give us a sense of which features might be semantically relevant. We've included a table below taht shows the fraction of each class of file and the fraction of files that had a certain command in them.  No one command was unique to a particular class but there were definitely some interesting distributions for a certain feature across the classes. The table below includes only 4 of hundreds of possible commands we found that occured in the training set.  One command that was particularly interesting was the "CicLoaderWndClass" which occured relatively rarely in most classes except for the Lipler malware files and the files that were not malware.  "CicLoaderWndClass" was in all of the Lipler files we had and 63\% of the non malware files.  Because these commands by themselves did not seem to provide enough information to classify the files - this was essentially the precursor to a Bag of Words model - we decided to use a Word2Vec model that would help capture some of the semantic information contained in the ordering of these commands.  This makes intuitive sense because the order in which a series of commands appears in one of these files must give some indication as to what that file is doing.   
+
+\end{document}

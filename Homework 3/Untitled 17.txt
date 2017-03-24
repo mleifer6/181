@@ -1,0 +1,42 @@
+Kernel Perceptron Training time = 5.234375 sec
+Correct: 9784
+Incorrect: 0
+Kernel Perceptron Validation Accuracy = 1.0
+
+Budget Kernel Perceptron Training time = 3.51533985138 sec
+Beta = 0.1
+N = 20
+Correct: 8469
+Incorrect: 1315
+Budget Kernel Perceptron Validation Accuracy = 0.865596892886
+
+SK-Learn SVM Training time = 9.32252717018 sec
+Correct: 9784
+Incorrect: 0
+SK-Learn SVM Validation Accuracy = 1.0
+
+#############################################################################
+Kernel Perceptron Training time = 11.036906004 sec
+Correct: 9784
+Incorrect: 0
+Kernel Perceptron Validation Accuracy = 1.0
+
+Budget Kernel Perceptron Training time = 3.76705789566 sec
+Beta = 0.1
+N = 20
+Correct: 5410
+Incorrect: 4374
+Budget Kernel Perceptron Validation Accuracy = 0.552943581357
+
+SK-Learn SVM Training time = 8.88322901726 sec
+Correct: 9784
+Incorrect: 0
+SK-Learn SVM Validation Accuracy = 1.0
+
+#############################################################################
+Budget Kernel Perceptron Training time = 4.63935184479 sec
+Beta = 0.100
+N = 20
+Correct: 8837
+Incorrect: 947
+Budget Kernel Perceptron Validation Accuracy = 0.903209321341
