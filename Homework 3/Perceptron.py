@@ -10,7 +10,7 @@ import matplotlib.colors as c
 class Perceptron(object):
 	def __init__(self, numsamples):
 		self.numsamples = numsamples
-		
+	
 	def fit(self, X, Y):
 		self.X = X
 		self.Y = Y
@@ -21,6 +21,7 @@ class Perceptron(object):
 		# This is a temporary predict function so that the distribution code compiles
 		# You should delete this and write your own
 		return (X[:, 0] > .5)
+	
 
 	# Do not modify this method!
 	def visualize(self, output_file, width=3, show_charts=False, save_fig=True, include_points=True):
@@ -29,8 +30,8 @@ class Perceptron(object):
 		# Create a grid of points
 		x_min, x_max = min(X[:, 0] - width), max(X[:, 0] + width)
 		y_min, y_max = min(X[:, 1] - width), max(X[:, 1] + width)
-		xx,yy = np.meshgrid(np.arange(x_min, x_max, .05), np.arange(y_min,
-		    y_max, .05))
+		xx,yy = np.meshgrid(np.arange(x_min, x_max, .01), np.arange(y_min,
+		    y_max, .01))
 
 		# Flatten the grid so the values match spec for self.predict
 		xx_flat = xx.flatten()
