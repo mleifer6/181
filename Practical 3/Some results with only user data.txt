@@ -1,0 +1,39 @@
+50000
+Model = MLPRegressor
+Reading User Profile Data...
+Reading Train Data...
+learning...
+done learning
+('learning score: ', array([ 0.32633438,  0.42223419,  0.41351832,  0.30497749,  0.35251841]))
+('mean absolute error: ', 146.72077912501797)
+predicting...
+('mean absolute error: ', 147.04473254839206)
+Test Error: 147.03896
+Setting negatives to median
+
+
+Using 50000 data points
+learning...
+done learning
+('learning score: ', array([ 0.31708643,  0.42120214,  0.41799988,  0.32765072,  0.31941426]))
+('mean absolute error: ', 136.2202274395882)
+predicting...
+('mean absolute error: ', 138.17646380435554)
+MLPRegressor
+Test Error: 143.67465
+Setting negatives to median
+
+Reading User Profile Data...
+Reading Train Data...
+Using 100000 data points
+learning...
+done learning
+('learning score: ', array([ 0.29796775,  0.3086894 , -0.09339244,  0.34460572,  0.27371861]))
+('mean absolute error: ', 140.40222747633982)
+predicting...
+('mean absolute error: ', 140.61549086011507)
+Set negatives to 1
+Test Error: 147.51141
+MLPRegressor
+
+
