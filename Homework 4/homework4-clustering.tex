@@ -22,12 +22,15 @@
 \usepackage{fullpage}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{tikz}
+\usetikzlibrary{fit,positioning}
+\usetikzlibrary{bayesnet}
 \usepackage{color}
 \usepackage{todonotes}
 \usepackage{listings}
 \usepackage{common}
 \usepackage{bm}
-%\usepackage{graphicx}
+
 
 \usepackage[mmddyyyy,hhmmss]{datetime}
 
@@ -154,9 +157,8 @@
 		\end{tabular}
 		
 		\item Here is an image of the dendrograms: \\
-		\includegraphics[width=0.5\textwidth]{IMG_2123.JPG}
+		\includegraphics[width=0.5\textwidth]{IMG_2139.png}
 	\end{enumerate}
-	
 	
 	
 	
@@ -229,7 +231,66 @@
 	
 	\subsection*{Solution}
 	
-	
+	\begin{enumerate}
+		\item
+		\begin{figure}
+			\centering
+			\tikz{ %
+				\node[latent] (theta) {$\btheta$} ; %
+				\node[latent, below=of theta] (z) {$\boldz_i$} ; %
+				\node[latent, right=of z] (beta) {$\beta_k$} ; %
+				\node[obs, below=of z] (x) {$\boldx_i$} ; %
+				\plate[inner sep=0.25cm, xshift=-0.12cm, yshift=0.12cm] {plate1} {(z) (x)} {n}; %
+				\plate[inner sep=0.25cm, xshift=-0.12cm, yshift=0.12cm] {plate2} {(beta)} {c}; %
+				\edge {theta} {z} ; %
+				\edge {z,beta} {x} ; %
+			}
+		\end{figure}
+		
+		\item \[\mcL(\btheta, \{\bbeta_k\}^c_{k=1}) =  
+		-\ln p(D \given\btheta, \{\bbeta_k\}^c_{k=1}) = 
+		-\ln \prod_{i = 1}^np(\boldx_i, \boldz_i = C_k | \btheta, \{B_k\}_{k=1}^c) = \]
+		\[
+		-\ln \displaystyle\prod_{i = 1}^{n}\prod_{j = 1}^{|\mcV|}\beta_{z_{ij}}^{x_{ij}}\theta_k =
+		\sum_{i = 1}^{n}\sum_{j = 1}^{|\mcV|}\ln\theta_k+x_{ij}\ln\beta_{z_ij}\]
+		
+		We can't optimize this loss funciton directly because we don't know what $z_i$ is - it's a latent variable. 
+		\item \[ q_{ik} = 
+		p(z_i = C_k | x_i; \btheta, \{\beta_k\}_{k = 1}^c) \propto \]
+		\[
+		p(\boldx | z_i = C_k; \theta, \{\beta_k\}_{k=1}^c)p(z_i = C_k | \btheta, \{\beta_{k = 1}^c\}) = 
+		\prod_{j = 1}^{|\mcV|}\beta_{z_ij}^{x_{ij}}\theta_k
+		\]
+		And then to actually calculate $\boldq_i$ and not just something proportional to it, calculate all of those probabilities and take their sum and divide each term found above by that.  
+		
+		\[
+		q_{ik} = \dfrac{\prod_{j = 1}^{|\mcV|}\beta_{z_ij}^{x_{ij}}\theta_k}{\sum_{m=1}^{c}\prod_{j = 1}^{|\mcV|}\beta_{z_ij}^{x_{ij}}\theta_m}
+		\]
+		
+		In order to actually calculate $\boldq_i$, I'd first initialize $\btheta$ and $\{\beta_k\}_k$ randomly, making sure that they don't start out as uniform distributions, because otherwise it'll just be stuck.  Then with those values, I would be able to calculate the distribution of $\boldq$ over $\boldz$.  Then using these $\boldq_i$'s I would update $\btheta$ and $\{\beta_k\}_k$ such that the expected complete log likelihood of the data is maximized, repeating these steps until the log likelihood converges.  
+		
+		\item Given all this, the expected complete data log likelihood of the data is $\displaystyle\sum_{i = 1}^{n}\sum_{k = 1}^{c}q_{ik}(\ln\theta_k + \sum_{j = 1}^{|\mcV|}x_{ij}\ln\beta_{kj})$ \\
+		
+		Since I'm going to optimize with respect to $\theta$, I dropped all the terms that didn't depend on $\theta$ \\
+		\[\mcL(\theta,\lambda) = -\displaystyle\sum_{i = 1}^{n}\sum_{k = 1}^{c}q_{ik}\ln\theta_k + \lambda(\sum_{m=1}^{c}\theta_m - 1)\] \\
+		\[ \dfrac{\partial\mcL}{\partial\theta_k} = - \sum_{i=1}^{n}q_{ik}\cdot\frac{1}{\theta_k} + \lambda = 0 \] \\
+		\[ \lambda = \dfrac{1}{\theta_k}\sum_{i =1}^{n}q_{ik}   \]
+		\[ \theta_k = \frac{1}{\lambda}\sum_{i=1}^{n}q_{ik}\] 
+		Sum both sides over $k$ \\
+		\[ 1 = \frac{1}{\lambda} \sum_{i = 1}^{n}\sum_{k=1}^{c}q_{ik}\]
+		\[\lambda = \sum_{i = 1}^{n}\sum_{k=1}^{c}q_{ik} \]
+		\[\hat{\theta_k} = \frac{1}{n}\sum_{i = 1}^{n}q_{ik}\]
+		
+		This optimized $\btheta$ makes sense because each entry which represents the probability that a document is in class $k$ is the average of the posterior probabilities across all the data points that a document is in class $k$ which seems reasonable.  \\
+		
+		\[\mcL(\beta, \lambda) = -\sum_{i = 1}^n\sum_{k = 1}^{c}q_{ik}\sum_{j = 1}^{|\mcV|}x_{ij}\ln\beta_{kj} + \lambda(\sum_{k = 1}^{c}\sum_{j = 1}^{|\mcV|}\beta_{kj} - 1) \]
+		
+		\[\dfrac{\partial\mcL(\beta,\lambda)}{\partial\beta_{kj}} = -\sum_{i=1}^{n}\dfrac{q_{ik}x_{ij}}{\beta_{kj}} + \lambda = 0\]
+		\[\lambda = \sum_{i = 1}^{n}\dfrac{q_{ik}x_{ij}}{\beta_{kj}}   \] 
+		\[\sum_{j = 1}^{|\mcV|}\beta_{kj} = \frac{1}{\lambda} \sum_{i=1}^{n}\sum_{j = 1}^{|\mcV|}q_{ik}x_{ij} \]
+		\[\lambda = \sum_{i=1}^{n}\sum_{j = 1}^{|\mcV|} q_{ik}x_{ij}\]
+		\[\hat{\beta_{kj}} = \dfrac{\displaystyle\sum_{i = 1}^{n}q_{ik}x_{ij}}{\displaystyle\sum_{i=1}^{n}\sum_{j = 1}^{|\mcV|}q_{ik}x_{ij}}\]
+	\end{enumerate}
 	
 	
 	\newpage
@@ -296,6 +357,98 @@
 	\end{problem}
 	\subsection*{Solution}
 	
+	For the values of $k$ that I tested ($k = 10, k = 11, k = 16$) the loss at the beginning of the trials when using K-means++ was approximately 10 million - of course due to the randomization there was some variation in the intial average.  After running K-means to convergence the value of the objective function decreased to around 9 million.  The results aren't too different for different values of $k$ - K means performs pretty well on clustering similar images.  4's, 9's and 7's are often grouped together and so are 3's and 8's.  5's have a decent amount of variability in how they're written and so they might be grouped with 2's or 3's and are harder to classify. For $k=10$, 5's don't seem to belong to a particular cluster instead, my classifier has two classes for the number 1 - the 1's in one cluster are straight up and in the other are slanted significantly. For $k = 11$ this no longer seems to be a problem and the cluster of slanted 1's has disappeared.  \\\\
+	I selected the images that are representative of a cluster by finding the images that were closest (in terms of Euclidean distance) to the mean of that cluster.  I calculated the loss at every iteration and it almost always decreases, however on occasion the loss increases by a very small fraction less than $10^{-6}$.  A TF upon reviewing my code told me that this was just due to floating point imprecision because it's such a small value - can't even be noticed in the loss graph.  \\
+	
+	This first batch of plots is for $k$ = 10. The large image to the right of the groups of 4 represents the mean for that particular cluster and the group of 4 are the 4 images which are closest to the mean witihin that cluster. \\
+	\includegraphics[scale=.25]{Trial_1;_K_=_10;_D_=_4/Cluster_0_Images.png}
+	\includegraphics[scale=.25]{Trial_1;_K_=_10;_D_=_4/Mean_for_Cluster_0.png}
+	\includegraphics[scale=.25]{Trial_1;_K_=_10;_D_=_4/Cluster_1_Images.png}
+	\includegraphics[scale=.25]{Trial_1;_K_=_10;_D_=_4/Mean_for_Cluster_1.png}
+	\includegraphics[scale=.25]{Trial_1;_K_=_10;_D_=_4/Cluster_2_Images.png}
+	\includegraphics[scale=.25]{Trial_1;_K_=_10;_D_=_4/Mean_for_Cluster_2.png}
+	\includegraphics[scale=.25]{Trial_1;_K_=_10;_D_=_4/Cluster_3_Images.png}
+	\includegraphics[scale=.25]{Trial_1;_K_=_10;_D_=_4/Mean_for_Cluster_3.png}
+	\includegraphics[scale=.25]{Trial_1;_K_=_10;_D_=_4/Cluster_4_Images.png}
+	\includegraphics[scale=.25]{Trial_1;_K_=_10;_D_=_4/Mean_for_Cluster_4.png}
+	\includegraphics[scale=.25]{Trial_1;_K_=_10;_D_=_4/Cluster_5_Images.png}
+	\includegraphics[scale=.25]{Trial_1;_K_=_10;_D_=_4/Mean_for_Cluster_5.png}
+	\includegraphics[scale=.25]{Trial_1;_K_=_10;_D_=_4/Cluster_6_Images.png}
+	\includegraphics[scale=.25]{Trial_1;_K_=_10;_D_=_4/Mean_for_Cluster_6.png}
+	\includegraphics[scale=.25]{Trial_1;_K_=_10;_D_=_4/Cluster_7_Images.png}
+	\includegraphics[scale=.25]{Trial_1;_K_=_10;_D_=_4/Mean_for_Cluster_7.png}
+	\includegraphics[scale=.25]{Trial_1;_K_=_10;_D_=_4/Cluster_8_Images.png}
+	\includegraphics[scale=.25]{Trial_1;_K_=_10;_D_=_4/Mean_for_Cluster_8.png}
+	\includegraphics[scale=.25]{Trial_1;_K_=_10;_D_=_4/Cluster_9_Images.png}
+	\includegraphics[scale=.25]{Trial_1;_K_=_10;_D_=_4/Mean_for_Cluster_9.png}
+	\includegraphics[scale = 0.4]{Trial_1;_K_=_10;_D_=_4/Loss_for_K_=_10.png} 
+	\\\\
+
+	Here are the images and clusters for $k$ = 11. \\
+	\includegraphics[scale=.25]{Trial_2;_K_=_11;_D_=_4/Cluster_0_Images.png}
+	\includegraphics[scale=.25]{Trial_2;_K_=_11;_D_=_4/Mean_for_Cluster_0.png}
+	\includegraphics[scale=.25]{Trial_2;_K_=_11;_D_=_4/Cluster_1_Images.png}
+	\includegraphics[scale=.25]{Trial_2;_K_=_11;_D_=_4/Mean_for_Cluster_1.png}
+	\includegraphics[scale=.25]{Trial_2;_K_=_11;_D_=_4/Cluster_2_Images.png}
+	\includegraphics[scale=.25]{Trial_2;_K_=_11;_D_=_4/Mean_for_Cluster_2.png}
+	\includegraphics[scale=.25]{Trial_2;_K_=_11;_D_=_4/Cluster_3_Images.png}
+	\includegraphics[scale=.25]{Trial_2;_K_=_11;_D_=_4/Mean_for_Cluster_3.png}
+	\includegraphics[scale=.25]{Trial_2;_K_=_11;_D_=_4/Cluster_4_Images.png}
+	\includegraphics[scale=.25]{Trial_2;_K_=_11;_D_=_4/Mean_for_Cluster_4.png}
+	\includegraphics[scale=.25]{Trial_2;_K_=_11;_D_=_4/Cluster_5_Images.png}
+	\includegraphics[scale=.25]{Trial_2;_K_=_11;_D_=_4/Mean_for_Cluster_5.png}
+	\includegraphics[scale=.25]{Trial_2;_K_=_11;_D_=_4/Cluster_6_Images.png}
+	\includegraphics[scale=.25]{Trial_2;_K_=_11;_D_=_4/Mean_for_Cluster_6.png}
+	\includegraphics[scale=.25]{Trial_2;_K_=_11;_D_=_4/Cluster_7_Images.png}
+	\includegraphics[scale=.25]{Trial_2;_K_=_11;_D_=_4/Mean_for_Cluster_7.png}
+	\includegraphics[scale=.25]{Trial_2;_K_=_11;_D_=_4/Cluster_8_Images.png}
+	\includegraphics[scale=.25]{Trial_2;_K_=_11;_D_=_4/Mean_for_Cluster_8.png}
+	\includegraphics[scale=.25]{Trial_2;_K_=_11;_D_=_4/Cluster_9_Images.png}
+	\includegraphics[scale=.25]{Trial_2;_K_=_11;_D_=_4/Mean_for_Cluster_9.png}
+	\includegraphics[scale=.25]{Trial_2;_K_=_11;_D_=_4/Cluster_10_Images.png}
+	\includegraphics[scale=.25]{Trial_2;_K_=_11;_D_=_4/Mean_for_Cluster_10.png} \\
+	\includegraphics[scale = 0.4]{Trial_2;_K_=_11;_D_=_4/Loss_for_K_=_11.png} 
+	\\\\
+	
+	Lastly, $k = 16$. \\
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Cluster_0_Images.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Mean_for_Cluster_0.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Cluster_1_Images.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Mean_for_Cluster_1.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Cluster_2_Images.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Mean_for_Cluster_2.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Cluster_3_Images.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Mean_for_Cluster_3.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Cluster_4_Images.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Mean_for_Cluster_4.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Cluster_5_Images.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Mean_for_Cluster_5.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Cluster_6_Images.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Mean_for_Cluster_6.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Cluster_7_Images.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Mean_for_Cluster_7.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Cluster_8_Images.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Mean_for_Cluster_8.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Cluster_9_Images.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Mean_for_Cluster_9.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Cluster_10_Images.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Mean_for_Cluster_10.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Cluster_11_Images.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Mean_for_Cluster_11.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Cluster_12_Images.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Mean_for_Cluster_12.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Cluster_13_Images.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Mean_for_Cluster_13.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Cluster_14_Images.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Mean_for_Cluster_14.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Cluster_15_Images.png}
+	\includegraphics[scale=.25]{Trial_3;_K_=_16;_D_=_4/Mean_for_Cluster_15.png}
+	
+	\includegraphics[scale = 0.4]{Trial_3;_K_=_16;_D_=_4/Loss_for_K_=_16.png}
+	
+
+	
+	
 	
 	%Figure out how to load it into your environment and turn it into a set of
 	%vectors.  Run K-Means on it for a few different~$K$ and show some results from
@@ -310,7 +463,7 @@
 	
 	\newpage
 	\begin{problem}[Calibration, 1pt]
-		Approximately how long did this homework take you to complete?
+		Approximately how long did this homework take you to complete? Between 12 and 15 hours.  
 	\end{problem}
 	
 	

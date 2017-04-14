@@ -96,7 +96,7 @@ class KMeans(object):
 				loss += np.linalg.norm(np.subtract(X[i], means[r[i]])) #self.l2_dist(X[i], means[r[i]])
 			self.losses.append(loss)
 			print "Changed = %d" % count
-			print "Loss = %f" % loss
+			#print "Loss = %f" % loss
 
 		#print r
 		#print self.losses
@@ -104,10 +104,10 @@ class KMeans(object):
 		self.means = means
 		self.r = r
 
-		for i in range(len(self.losses)):
-			if i < len(self.losses) - 2:
-				if self.losses[i] < self.losses[i+1]:
-					print i, self.losses[i], self.losses[i+1], (self.losses[i+1] - self.losses[i]) / self.losses[i]
+		# for i in range(len(self.losses)):
+		# 	if i < len(self.losses) - 2:
+		# 		if self.losses[i] < self.losses[i+1]:
+		# 			print i, self.losses[i], self.losses[i+1], (self.losses[i+1] - self.losses[i]) / self.losses[i]
 
 
 	# x1 and x2 are 28x28 arrays
@@ -155,10 +155,10 @@ class KMeans(object):
 			cluster = self.r[img_number]
 		title = ""
 		if is_mean:
-			title += "Mean for "
-		title += "Cluster = " + str(cluster)
+			title += "Mean_for_"
+		title += "Cluster_=_" + str(cluster)
 		if not is_mean:
-			title += "; Img " + str(img_number)
+			title += ";_Img_" + str(img_number)
 		 
 		plt.figure()
 		plt.imshow(img_array, cmap='Greys_r')
@@ -175,9 +175,9 @@ pics = np.load("images.npy", allow_pickle=False)
 # That being said, keep in mind that you should not change the constructor for the KMeans class, 
 # though you may add more public methods for things like the visualization if you want.
 # Also, you must cluster all of the images in the provided dataset, so your code should be fast enough to do that.
-K = 11
-D = 5
-KMC = KMeans(K, useKMeansPP=True)
+K = 10
+D = 4
+KMC = KMeans(K, useKMeansPP=False)
 KMC.fit(pics)
 
 means = KMC.get_mean_images()
@@ -185,11 +185,21 @@ for i in range(len(means)):
 	KMC.create_image_from_array(means[i], cluster = i, is_mean = True)
 
 samples = KMC.get_representative_images(D)
-for k in range(len(samples)):
-	for (dist, i, image) in samples[k]:
-		KMC.create_image_from_array(image, img_number = i)
+# for k in range(len(samples)):
+#  	for (dist, i, image) in samples[k]:
+#  		KMC.create_image_from_array(image, img_number = i)
 
+
+for k in range(len(samples)):
+	f, axarr = plt.subplots(2,2)
+	samples[0][0][2]
+	axarr[0,0].imshow(samples[k][0][2], cmap='Greys_r')
+	axarr[0,1].imshow(samples[k][1][2], cmap='Greys_r')
+	axarr[1,0].imshow(samples[k][2][2], cmap='Greys_r')
+	axarr[1,1].imshow(samples[k][3][2], cmap='Greys_r')
+	title = "Cluster_%d_Images.png" % k
+	plt.savefig(title)
 
 plt.figure()
 plt.scatter(range(len(KMC.losses)), KMC.losses)
-plt.savefig("Loss for K = " + str(K) + ".png")
+plt.savefig("Loss_for_K_=_" + str(K) + ".png")
